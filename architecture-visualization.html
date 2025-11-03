@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent TTS - 项目架构可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #495057;
+            border: none;
+            background: none;
+            font-size: 16px;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 架构图样式 */
+        .architecture-diagram {
+            position: relative;
+            min-height: 800px;
+            padding: 40px 20px;
+        }
+
+        .layer {
+            margin-bottom: 60px;
+        }
+
+        .layer-title {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .layer-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 10px auto 0;
+        }
+
+        .modules {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .module {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            min-width: 280px;
+            max-width: 320px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .module-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 8px;
+        }
+
+        .module-file {
+            font-size: 0.9em;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 12px;
+        }
+
+        .module-desc {
+            color: #6c757d;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .module-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+
+        .detail-icon {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        /* 数据流图样式 */
+        .dataflow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 40px 20px;
+        }
+
+        .flow-step {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px 40px;
+            min-width: 350px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+        }
+
+        .flow-step::after {
+            content: '↓';
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .flow-step:last-child::after {
+            content: '';
+        }
+
+        .flow-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .flow-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 8px;
+        }
+
+        .flow-module {
+            font-size: 0.9em;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* 模块列表样式 */
+        .modules-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .module-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .module-header .module-icon {
+            margin: 0 15px 0 0;
+        }
+
+        .module-info h3 {
+            font-size: 1.4em;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+
+        .module-info .module-file {
+            margin: 0;
+        }
+
+        .module-section {
+            margin: 20px 0;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .section-content {
+            color: #6c757d;
+            line-height: 1.7;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .dependencies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .dependency-tag {
+            background: #f8f9fa;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #e9ecef;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .modules {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .module {
+                width: 100%;
+                max-width: none;
+            }
+
+            .modules-list {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .flow-step {
+                min-width: 280px;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .legend {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Agent TTS</h1>
+            <p class="subtitle">实时语音 AI 代理系统 - 项目架构可视化</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('architecture')">🏗️ 系统架构</button>
+            <button class="tab" onclick="switchTab('dataflow')">🔄 数据流程</button>
+            <button class="tab" onclick="switchTab('modules')">📦 模块详解</button>
+        </div>
+
+        <div class="content">
+            <!-- 系统架构标签页 -->
+            <div id="architecture" class="tab-content active">
+                <div class="legend">
+                    <div class="legend-title">📌 图例说明</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                            <span>核心模块</span>
+                        </div>
+                        <div class="legend-item">
+                            <span>点击模块查看详细信息</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="architecture-diagram">
+                    <div class="layer">
+                        <div class="layer-title">🚀 应用层</div>
+                        <div class="modules">
+                            <div class="module">
+                                <div class="module-icon">🎯</div>
+                                <div class="module-name">应用入口</div>
+                                <div class="module-file">main.py</div>
+                                <div class="module-desc">
+                                    应用程序的启动和协调中心，负责初始化所有组件并管理生命周期。
+                                </div>
+                                <div class="module-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">⚙️</span>
+                                        <span>环境配置管理</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🔄</span>
+                                        <span>异步事件循环</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🛡️</span>
+                                        <span>信号处理</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">🤖 代理层</div>
+                        <div class="modules">
+                            <div class="module">
+                                <div class="module-icon">👥</div>
+                                <div class="module-name">AI 面试官</div>
+                                <div class="module-file">agent/agent.py</div>
+                                <div class="module-desc">
+                                    管理视频会议连接，处理参与者事件，协调音频流的输入和输出。
+                                </div>
+                                <div class="module-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🎥</span>
+                                        <span>会议管理</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">👤</span>
+                                        <span>参与者监听</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="module">
+                                <div class="module-icon">🎵</div>
+                                <div class="module-name">音频流轨道</div>
+                                <div class="module-file">agent/audio_stream_track.py</div>
+                                <div class="module-desc">
+                                    管理 AI 生成的音频输出，处理音频帧的生成、缓冲和同步。
+                                </div>
+                                <div class="module-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🔊</span>
+                                        <span>24kHz 单声道</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">⚡</span>
+                                        <span>打断处理</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">🧠 智能层</div>
+                        <div class="modules">
+                            <div class="module">
+                                <div class="module-icon">🔌</div>
+                                <div class="module-name">智能接口</div>
+                                <div class="module-file">intelligence/intelligence.py</div>
+                                <div class="module-desc">
+                                    定义 LLM 的抽象接口，支持多种大语言模型的接入。
+                                </div>
+                            </div>
+
+                            <div class="module">
+                                <div class="module-icon">🤖</div>
+                                <div class="module-name">OpenAI 客户端</div>
+                                <div class="module-file">intelligence/intelligence_client.py</div>
+                                <div class="module-desc">
+                                    使用 GPT-4o 生成对话响应，维护对话历史和上下文。
+                                </div>
+                                <div class="module-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">💬</span>
+                                        <span>对话管理</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">📝</span>
+                                        <span>提示词引擎</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">🎤 语音识别层</div>
+                        <div class="modules">
+                            <div class="module">
+                                <div class="module-icon">🔌</div>
+                                <div class="module-name">STT 接口</div>
+                                <div class="module-file">stt/stt.py</div>
+                                <div class="module-desc">
+                                    定义语音转文本的抽象接口，支持多种 STT 服务。
+                                </div>
+                            </div>
+
+                            <div class="module">
+                                <div class="module-icon">🎙️</div>
+                                <div class="module-name">Deepgram 客户端</div>
+                                <div class="module-file">stt/deepgram_stt.py</div>
+                                <div class="module-desc">
+                                    实时语音识别，支持多参与者、语音活动检测和速度自适应。
+                                </div>
+                                <div class="module-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🎯</span>
+                                        <span>Nova 2 模型</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">⚡</span>
+                                        <span>实时转录</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">🔊 语音合成层</div>
+                        <div class="modules">
+                            <div class="module">
+                                <div class="module-icon">🔌</div>
+                                <div class="module-name">TTS 接口</div>
+                                <div class="module-file">tts/tts.py</div>
+                                <div class="module-desc">
+                                    定义文本转语音的抽象接口，支持多种 TTS 服务。
+                                </div>
+                            </div>
+
+                            <div class="module">
+                                <div class="module-icon">🗣️</div>
+                                <div class="module-name">Eleven Labs 客户端</div>
+                                <div class="module-file">tts/elevenlabs_tts.py</div>
+                                <div class="module-desc">
+                                    高质量多语言语音合成，支持流式音频生成。
+                                </div>
+                                <div class="module-details">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🌍</span>
+                                        <span>多语言 V2</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🎵</span>
+                                        <span>自然语音</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据流程标签页 -->
+            <div id="dataflow" class="tab-content">
+                <div class="dataflow">
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">1</span>
+                            参与者说话
+                        </div>
+                        <div class="flow-module">用户音频输入</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">2</span>
+                            WebRTC 捕获音频
+                        </div>
+                        <div class="flow-module">agent/agent.py → on_stream_enabled</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">3</span>
+                            音频流发送到 Deepgram
+                        </div>
+                        <div class="flow-module">stt/deepgram_stt.py → add_peer_stream</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">4</span>
+                            语音转文本
+                        </div>
+                        <div class="flow-module">stt/deepgram_stt.py → on_deepgram_stt_text_available</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">5</span>
+                            文本发送到 OpenAI
+                        </div>
+                        <div class="flow-module">intelligence/intelligence_client.py → generate</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">6</span>
+                            生成 AI 响应
+                        </div>
+                        <div class="flow-module">intelligence/intelligence_client.py → OpenAI API</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">7</span>
+                            文本转语音
+                        </div>
+                        <div class="flow-module">tts/elevenlabs_tts.py → generate</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">8</span>
+                            音频添加到轨道
+                        </div>
+                        <div class="flow-module">agent/audio_stream_track.py → add_new_bytes</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">9</span>
+                            音频帧缓冲处理
+                        </div>
+                        <div class="flow-module">agent/audio_stream_track.py → process_incoming_audio</div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-title">
+                            <span class="flow-number">10</span>
+                            WebRTC 播放音频
+                        </div>
+                        <div class="flow-module">agent/agent.py → 音频输出到参与者</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模块详解标签页 -->
+            <div id="modules" class="tab-content">
+                <div class="modules-list">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🎯</div>
+                            <div class="module-info">
+                                <h3>应用入口</h3>
+                                <div class="module-file">main.py</div>
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心功能</div>
+                            <div class="section-content">
+                                应用程序的启动和协调中心，负责初始化所有核心组件、配置环境变量、管理异步事件循环，并处理优雅的启动和关闭流程。
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">主要特性</div>
+                            <ul class="features-list">
+                                <li>环境变量加载和验证</li>
+                                <li>组件依赖注入</li>
+                                <li>异步事件循环管理</li>
+                                <li>信号处理（SIGTERM、SIGINT）</li>
+                                <li>日志记录配置</li>
+                            </ul>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">依赖模块</div>
+                            <div class="dependencies">
+                                <span class="dependency-tag">agent.py</span>
+                                <span class="dependency-tag">audio_stream_track.py</span>
+                                <span class="dependency-tag">intelligence_client.py</span>
+                                <span class="dependency-tag">deepgram_stt.py</span>
+                                <span class="dependency-tag">elevenlabs_tts.py</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">👥</div>
+                            <div class="module-info">
+                                <h3>AI 面试官代理</h3>
+                                <div class="module-file">agent/agent.py</div>
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心功能</div>
+                            <div class="section-content">
+                                管理视频会议连接和参与者交互，使用 VideoSDK 处理 WebRTC 连接，监听会议和参与者事件。
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心类</div>
+                            <ul class="features-list">
+                                <li><strong>AIInterviewer:</strong> 主代理类</li>
+                                <li><strong>MyMeetingEventListener:</strong> 会议事件监听</li>
+                                <li><strong>MyParticipantEventListener:</strong> 参与者事件监听</li>
+                            </ul>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">依赖模块</div>
+                            <div class="dependencies">
+                                <span class="dependency-tag">videosdk</span>
+                                <span class="dependency-tag">stt.STT</span>
+                                <span class="dependency-tag">intelligence.Intelligence</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🎵</div>
+                            <div class="module-info">
+                                <h3>音频流轨道</h3>
+                                <div class="module-file">agent/audio_stream_track.py</div>
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心功能</div>
+                            <div class="section-content">
+                                管理 AI 生成的音频输出到会议，处理音频帧的生成、缓冲和同步，支持音频打断功能。
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">音频参数</div>
+                            <ul class="features-list">
+                                <li>采样率: 24000 Hz</li>
+                                <li>声道: 单声道 (Mono)</li>
+                                <li>位深: 16-bit (s16)</li>
+                                <li>帧时长: 20ms (PTIME)</li>
+                            </ul>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">依赖模块</div>
+                            <div class="dependencies">
+                                <span class="dependency-tag">av (PyAV)</span>
+                                <span class="dependency-tag">numpy</span>
+                                <span class="dependency-tag">vsaiortc</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🤖</div>
+                            <div class="module-info">
+                                <h3>OpenAI 智能客户端</h3>
+                                <div class="module-file">intelligence/intelligence_client.py</div>
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心功能</div>
+                            <div class="section-content">
+                                使用 OpenAI GPT-4o 模型生成对话响应，维护对话历史和上下文，支持自定义系统提示词。
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">主要特性</div>
+                            <ul class="features-list">
+                                <li>对话历史管理（最近 20 条）</li>
+                                <li>自定义系统提示词</li>
+                                <li>上下文窗口优化</li>
+                                <li>RAG 集成预留</li>
+                                <li>流式响应支持（待启用）</li>
+                            </ul>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">依赖模块</div>
+                            <div class="dependencies">
+                                <span class="dependency-tag">openai</span>
+                                <span class="dependency-tag">tts.TTS</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🎙️</div>
+                            <div class="module-info">
+                                <h3>Deepgram STT</h3>
+                                <div class="module-file">stt/deepgram_stt.py</div>
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心功能</div>
+                            <div class="section-content">
+                                使用 Deepgram Nova 2 模型进行实时语音识别，支持多参与者、语音活动检测和说话速度自适应。
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">高级特性</div>
+                            <ul class="features-list">
+                                <li>实时转录（低延迟）</li>
+                                <li>语音活动检测（VAD）</li>
+                                <li>语句端点检测</li>
+                                <li>说话速度自适应（WPM）</li>
+                                <li>多参与者并发支持</li>
+                                <li>智能分词和标点</li>
+                            </ul>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">依赖模块</div>
+                            <div class="dependencies">
+                                <span class="dependency-tag">deepgram-sdk</span>
+                                <span class="dependency-tag">intelligence.Intelligence</span>
+                                <span class="dependency-tag">numpy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🗣️</div>
+                            <div class="module-info">
+                                <h3>Eleven Labs TTS</h3>
+                                <div class="module-file">tts/elevenlabs_tts.py</div>
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">核心功能</div>
+                            <div class="section-content">
+                                使用 Eleven Labs Multilingual V2 模型生成高质量自然语音，支持流式音频生成。
+                            </div>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">语音参数</div>
+                            <ul class="features-list">
+                                <li>模型: eleven_multilingual_v2</li>
+                                <li>输出格式: PCM 24000 Hz</li>
+                                <li>稳定性: 0.71</li>
+                                <li>相似度增强: 0.5</li>
+                                <li>说话人增强: 启用</li>
+                            </ul>
+                        </div>
+                        <div class="module-section">
+                            <div class="section-title">依赖模块</div>
+                            <div class="dependencies">
+                                <span class="dependency-tag">elevenlabs</span>
+                                <span class="dependency-tag">audio_stream_track</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>🚀 AI Agent TTS - 实时语音 AI 代理系统</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">采用模块化架构 | 支持多语言 | 实时低延迟</p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // 隐藏所有标签页内容
+            const allContents = document.querySelectorAll('.tab-content');
+            allContents.forEach(content => content.classList.remove('active'));
+
+            // 移除所有标签的激活状态
+            const allTabs = document.querySelectorAll('.tab');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+
+            // 显示选中的标签页
+            document.getElementById(tabName).classList.add('active');
+
+            // 激活对应的标签按钮
+            event.target.classList.add('active');
+        }
+
+        // 添加模块点击效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const modules = document.querySelectorAll('.module, .module-card, .flow-step');
+            modules.forEach(module => {
+                module.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
