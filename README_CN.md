@@ -2,6 +2,11 @@
 
 构建一个实时 AI 面试官语音代理，可加入会议以精准地评估、参与和评价候选人。本项目展示了通过 WebRTC 集成 Deepgram（语音转文本）、OpenAI（大语言模型）和 Eleven Labs（文本转语音）以实现自然、对话式交互的完整解决方案。
 
+## 📚 文档导航
+
+- **[项目结构详解](PROJECT_STRUCTURE.md)** - 详细的代码架构和模块说明
+- **[交互式架构可视化](https://htmlpreview.github.io/?https://github.com/wyle-timing-xx/ai-agent-tts/blob/main/architecture-visualization.html)** - 可视化的系统架构和数据流程图
+
 ## 项目概述
 
 观看 AI 代理的演示视频：
@@ -88,6 +93,13 @@ python main.py
 5. LLM 的文本响应被发送到 **Eleven Labs TTS** 进行语音合成
 6. 合成的音频通过 Video SDK 的 **自定义音频轨道** 功能流回会议
 
+### 详细架构文档
+
+想要深入了解系统架构？查看以下资源：
+
+- 📖 **[项目结构详解文档](PROJECT_STRUCTURE.md)** - 包含每个 Python 文件的详细说明、设计模式和扩展指南
+- 🎨 **[交互式可视化](https://htmlpreview.github.io/?https://github.com/wyle-timing-xx/ai-agent-tts/blob/main/architecture-visualization.html)** - 在浏览器中查看动态的系统架构图和数据流程
+
 ## 技术栈 🛠️
 
 - **语音识别：** Deepgram STT (Nova 2)
@@ -100,14 +112,25 @@ python main.py
 
 ```
 ai-agent-tts/
-├── agent/              # AI 代理核心逻辑
-├── intelligence/       # LLM 智能处理
-├── stt/               # 语音转文本模块
-├── tts/               # 文本转语音模块
-├── main.py            # 主程序入口
-├── requirements.txt   # 依赖列表
-├── .env.example       # 环境变量模板
-└── README.md          # 英文文档
+├── agent/                          # AI 代理核心逻辑
+│   ├── agent.py                    # 会议管理和事件处理
+│   └── audio_stream_track.py       # 音频流处理
+├── intelligence/                   # LLM 智能处理
+│   ├── intelligence.py             # 抽象接口
+│   └── intelligence_client.py      # OpenAI 实现
+├── stt/                           # 语音转文本模块
+│   ├── stt.py                     # 抽象接口
+│   └── deepgram_stt.py            # Deepgram 实现
+├── tts/                           # 文本转语音模块
+│   ├── tts.py                     # 抽象接口
+│   └── elevenlabs_tts.py          # Eleven Labs 实现
+├── main.py                        # 主程序入口
+├── requirements.txt               # 依赖列表
+├── .env.example                   # 环境变量模板
+├── README.md                      # 英文文档
+├── README_CN.md                   # 中文文档（本文件）
+├── PROJECT_STRUCTURE.md           # 项目结构详解
+└── architecture-visualization.html # 交互式架构可视化
 ```
 
 ## 高级特性 🚀
